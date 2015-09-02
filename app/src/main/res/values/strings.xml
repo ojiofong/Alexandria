@@ -31,5 +31,10 @@
 
 
     <string name="empty_booklist">There are no books added.\n Please scan or Add a book. </string>
+    <string name="pref_summary_startScreen">Select the screen that will be shown whenever this app is launched</string>
+
+
+    <string name="book_detail">Book detail </string>
+    <string name="book_deleted">Book deleted </string>
 
 </resources>

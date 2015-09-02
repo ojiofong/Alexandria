@@ -52,8 +52,9 @@
         <TextView
             android:id="@+id/emptyView"
             android:visibility="gone"
-            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
             android:gravity="center"
+            android:layout_marginTop="100dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/empty_booklist" />
