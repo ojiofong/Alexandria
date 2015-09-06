@@ -51,6 +51,6 @@ public class DetailActivity extends AppCompatActivity implements BookDetail.Book
     @Override
     public void onDeleteBook() {
         Toast.makeText(getApplicationContext(), getString(R.string.book_deleted), Toast.LENGTH_LONG).show();
-        onBackPressed();
+        finish();
     }
 }

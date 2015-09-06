@@ -24,7 +24,7 @@ import android.widget.Toast;
 
 import it.jaschke.alexandria.api.Callback;
 
-public class TestActivity extends AppCompatActivity implements Callback, BookDetail.BookDetailCallback {
+public class TestActivity2 extends AppCompatActivity implements Callback, BookDetail.BookDetailCallback {
 
     /**
      * Used to store the last screen title. For use in
@@ -261,7 +261,7 @@ public class TestActivity extends AppCompatActivity implements Callback, BookDet
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings)
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
         return super.onOptionsItemSelected(item);
     }
 

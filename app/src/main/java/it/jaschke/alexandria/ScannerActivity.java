@@ -53,7 +53,7 @@ public class ScannerActivity extends AppCompatActivity implements ZBarScannerVie
 
 
         if (TextUtils.isDigitsOnly(isbn)) {
-            Intent intent = new Intent(getApplicationContext(), TestActivity.class);
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
             intent.putExtra(AddBook.SCAN_CONTENTS, isbn);
             intent.putExtra(AddBook.SCAN_FORMAT, format);
             startActivity(intent);

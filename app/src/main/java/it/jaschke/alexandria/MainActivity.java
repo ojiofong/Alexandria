@@ -8,25 +8,28 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import it.jaschke.alexandria.api.Callback;
 
 
-public class MainActivity extends ActionBarActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks, Callback {
+public class MainActivity extends AppCompatActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks, Callback {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment navigationDrawerFragment;
+    public Toolbar toolbar;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -37,21 +40,22 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
     public static final String MESSAGE_EVENT = "MESSAGE_EVENT";
     public static final String MESSAGE_KEY = "MESSAGE_EXTRA";
-    int pos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         IS_TABLET = isTablet();
-        if (IS_TABLET) {
+        if(IS_TABLET){
             setContentView(R.layout.activity_main_tablet);
-        } else {
+        }else {
             setContentView(R.layout.activity_main);
         }
 
         messageReciever = new MessageReciever();
         IntentFilter filter = new IntentFilter(MESSAGE_EVENT);
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReciever, filter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReciever,filter);
+
+        initialize();
 
         navigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -62,52 +66,37 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
                 (DrawerLayout) findViewById(R.id.drawer_layout));
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
+    private void initialize() {
+         toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        drawerLayoutt = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        listView = (ListView) findViewById(R.id.left_drawer);
+        setSupportActionBar(toolbar);
 
     }
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
 
-
         Fragment nextFragment;
 
-        switch (position) {
+        switch (position){
             default:
             case 0:
-                if (pos != 0)
-                    goToFragment(new ListOfBooks());
+                nextFragment = new ListOfBooks();
                 break;
             case 1:
-                if (pos != 1)
-                    goToFragment(new AddBook());
+                nextFragment = new AddBook();
                 break;
             case 2:
-                if (pos != 2)
-                    goToFragment(new About());
+                nextFragment = new About();
                 break;
 
         }
 
-        pos = position;
-
-
-    }
-
-    private void goToFragment(Fragment nextFragment) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-
-        boolean isInStack = fragmentManager.popBackStackImmediate((String) title, 0);
-        if (!isInStack)
-            transaction.addToBackStack((String) title)
-                    .replace(R.id.container, nextFragment)
-                    .commit();
-        else transaction.replace(R.id.container, nextFragment)
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, nextFragment)
+                .addToBackStack((String) title)
                 .commit();
-
     }
 
     public void setTitle(int titleId) {
@@ -165,7 +154,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         fragment.setArguments(args);
 
         int id = R.id.container;
-        if (findViewById(R.id.right_container) != null) {
+        if(findViewById(R.id.right_container) != null){
             id = R.id.right_container;
         }
         getSupportFragmentManager().beginTransaction()
@@ -177,19 +166,18 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
     @Override
     public void onBarcodeScanned(String isbn) {
-
     }
 
     private class MessageReciever extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getStringExtra(MESSAGE_KEY) != null) {
+            if(intent.getStringExtra(MESSAGE_KEY)!=null){
                 Toast.makeText(MainActivity.this, intent.getStringExtra(MESSAGE_KEY), Toast.LENGTH_LONG).show();
             }
         }
     }
 
-    public void goBack(View view) {
+    public void goBack(View view){
         getSupportFragmentManager().popBackStack();
     }
 
@@ -201,16 +189,27 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
     @Override
     public void onBackPressed() {
-//        if (getSupportFragmentManager().getBackStackEntryCount() < 2) {
-//            finish();
-//        }
+        if(getSupportFragmentManager().getBackStackEntryCount()<2){
+            finish();
+        }
         super.onBackPressed();
     }
 
 
-    void testMethod() {
-        String str = "123";
-        int i = Integer.parseInt(str);
+    void receiveScanIntent(){
+        String isbn = getIntent().getStringExtra(AddBook.SCAN_CONTENTS);
+        String format = getIntent().getStringExtra(AddBook.SCAN_FORMAT);
+        if (isbn != null && format != null) {
+            Bundle args = new Bundle();
+            args.putString(AddBook.SCAN_CONTENTS, isbn);
+            args.putString(AddBook.SCAN_FORMAT, format);
+            AddBook addBook = new AddBook();
+            addBook.setArguments(args);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, addBook)
+                    .addToBackStack((String) title)
+                    .commit();
+        }
     }
 
 
