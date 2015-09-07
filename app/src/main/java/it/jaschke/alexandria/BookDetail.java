@@ -65,6 +65,8 @@ public class BookDetail extends Fragment implements LoaderManager.LoaderCallback
                 bookIntent.setAction(BookService.DELETE_BOOK);
                 getActivity().startService(bookIntent);
                 ((BookDetailCallback) getActivity()).onDeleteBook();
+                rootView.setVisibility(View.INVISIBLE);
+
             }
         });
         return rootView;
