@@ -140,6 +140,7 @@ public class ListOfBooks extends Fragment implements LoaderManager.LoaderCallbac
     @Override
     public void onResume() {
         super.onResume();
-        getLoaderManager().initLoader(0, null, this);
+        restartLoader();
+        getActivity().setTitle(R.string.books);
     }
 }

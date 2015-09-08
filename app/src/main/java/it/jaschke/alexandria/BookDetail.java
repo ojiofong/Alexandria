@@ -50,6 +50,8 @@ public class BookDetail extends Fragment implements LoaderManager.LoaderCallback
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+        setHasOptionsMenu(true);
+
         Bundle arguments = getArguments();
         if (arguments != null) {
             ean = arguments.getString(BookDetail.EAN_KEY);
@@ -76,6 +78,7 @@ public class BookDetail extends Fragment implements LoaderManager.LoaderCallback
     @Override
     public void onResume() {
         super.onResume();
+        getLoaderManager().restartLoader(LOADER_ID, null, this);
     }
 
     @Override
