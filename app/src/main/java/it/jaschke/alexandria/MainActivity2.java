@@ -152,8 +152,10 @@ public class MainActivity2 extends ActionBarActivity implements NavigationDrawer
     }
 
     @Override
-    public void onBarcodeScanned(String isbn) {
+    public void onScanButtonClicked() {
+
     }
+
 
     private class MessageReciever extends BroadcastReceiver {
         @Override

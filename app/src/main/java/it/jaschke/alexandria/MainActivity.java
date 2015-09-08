@@ -14,6 +14,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,12 +25,12 @@ import it.jaschke.alexandria.api.Callback;
 
 public class MainActivity extends AppCompatActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks, Callback, BookDetail.BookDetailCallback {
 
+    private static String TAG = MainActivity.class.getSimpleName();
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment navigationDrawerFragment;
     public Toolbar toolbar;
-    private int selectedPosition = -1;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
 
     public static final String MESSAGE_EVENT = "MESSAGE_EVENT";
     public static final String MESSAGE_KEY = "MESSAGE_EXTRA";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,9 +54,9 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
 //            setContentView(R.layout.activity_main);
 //        }
 
-        messageReciever = new MessageReciever();
-        IntentFilter filter = new IntentFilter(MESSAGE_EVENT);
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReciever, filter);
+//        messageReciever = new MessageReciever();
+ //       IntentFilter filter = new IntentFilter(MESSAGE_EVENT);
+        //  LocalBroadcastManager.getInstance(this).registerReceiver(messageReciever, filter);
 
         initializeToolbar();
 
@@ -83,29 +85,31 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
         switch (position) {
             default:
             case 0:
-                if (selectedPosition != 0)
-                    goToFragment(new ListOfBooks(), position);
+                goToFragment(new ListOfBooks(), R.string.books);
                 break;
             case 1:
-                if (selectedPosition != 1)
-                    goToFragment(new AddBook(), position);
+                goToFragment(new AddBook(), R.string.scan);
                 break;
             case 2:
-                if (selectedPosition != 2)
-                    goToFragment(new About(), position);
+                goToFragment(new About(), R.string.about);
                 break;
 
         }
 
     }
 
-    private void goToFragment(Fragment nextFragment, int position) {
-        selectedPosition = position;
-        String mTitle = ((String) title);
+    private void goToFragment(Fragment nextFragment, int title) {
+
+        String mTitle = getString(title);
+
+        isAddedToBackstack(mTitle);
+
+
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.container, nextFragment);
+        ft.replace(R.id.container, nextFragment, mTitle);
         ft.addToBackStack(mTitle);
         ft.commit();
+
     }
 
     public void setTitle(int titleId) {
@@ -153,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
 
     @Override
     protected void onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReciever);
+        // LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReciever);
         super.onDestroy();
     }
 
@@ -164,15 +168,6 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
 
         BookDetail fragment = new BookDetail();
         fragment.setArguments(args);
-
-//        int id = R.id.container;
-//        if (findViewById(R.id.right_container) != null) {
-//            id = R.id.right_container;
-//        }
-//        getSupportFragmentManager().beginTransaction()
-//                .replace(id, fragment)
-//                .addToBackStack("Book Detail")
-//                .commit();
 
 
         if (isDualPane()) {
@@ -188,12 +183,14 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
 
     }
 
-    private boolean isDualPane() {
-        return findViewById(R.id.right_container) != null;
+    @Override
+    public void onScanButtonClicked() {
+        startActivity(new Intent(MainActivity.this, ScannerActivity.class));
+        finish();
     }
 
-    @Override
-    public void onBarcodeScanned(String isbn) {
+    private boolean isDualPane() {
+        return findViewById(R.id.right_container) != null;
     }
 
     @Override
@@ -202,14 +199,23 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
 
     }
 
-    private class MessageReciever extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getStringExtra(MESSAGE_KEY) != null) {
-                Toast.makeText(MainActivity.this, intent.getStringExtra(MESSAGE_KEY), Toast.LENGTH_LONG).show();
-            }
-        }
-    }
+//    private class MessageReciever extends BroadcastReceiver {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            if (intent.getStringExtra(MESSAGE_KEY) != null) {
+//                String msg = intent.getStringExtra(MESSAGE_KEY);
+//                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
+//                updateAddBookStatus(msg);
+//            }
+//        }
+//    }
+
+//    private void updateAddBookStatus(String msg) {
+//        final AddBook addBook = (AddBook) getSupportFragmentManager().findFragmentByTag(getString(R.string.scan));
+//        if (addBook != null && addBook.isAdded()) {
+//            addBook.updateStatus(msg);
+//        } else Toast.makeText(MainActivity.this, "addbook is null", Toast.LENGTH_LONG).show();
+//    }
 
     public void goBack(View view) {
         if (!IS_TABLET)
@@ -224,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
 
     @Override
     public void onBackPressed() {
-        if (navigationDrawerFragment.isDrawerOpen()){
+        if (navigationDrawerFragment.isDrawerOpen()) {
             navigationDrawerFragment.closeDrawer();
             return;
         }
@@ -249,6 +255,9 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
                     .replace(R.id.container, addBook)
                     .addToBackStack((String) title)
                     .commit();
+
+            if (navigationDrawerFragment.isDrawerOpen())
+                navigationDrawerFragment.closeDrawer();
         }
     }
 
@@ -257,11 +266,20 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
         String entry;
         for (int i = 0; i < fm.getBackStackEntryCount(); i++) {
             entry = fm.getBackStackEntryAt(i).getName();
-            if (entry != null && entry.equals(name))
+            if (entry != null && entry.equals(name)) {
+                Log.d(TAG, "Found backstack -> " + entry);
+                getSupportFragmentManager().popBackStack(entry, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 return true;
+            }
         }
+
+        Log.d(TAG, "Not Found backstack -> " + name);
         return false;
     }
 
+    private void closeDrawer() {
+        if (navigationDrawerFragment.isDrawerOpen())
+            navigationDrawerFragment.closeDrawer();
+    }
 
 }

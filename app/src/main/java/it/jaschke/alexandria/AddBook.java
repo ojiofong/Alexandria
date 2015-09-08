@@ -3,13 +3,17 @@ package it.jaschke.alexandria;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,12 +24,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import it.jaschke.alexandria.api.Callback;
 import it.jaschke.alexandria.data.AlexandriaContract;
 import it.jaschke.alexandria.services.BookService;
 import it.jaschke.alexandria.services.DownloadImage;
 
 
-public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "INTENT_TO_SCAN_ACTIVITY";
     private EditText ean;
     private final int LOADER_ID = 1;
@@ -36,6 +44,54 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
     private String mScanFormat = "Format:";
     private String mScanContents = "Contents:";
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.pref_book_status_key))) {
+
+            TextView tv = (TextView) rootView.findViewById(R.id.bookTitle);
+
+            int status = PreferenceManager.getDefaultSharedPreferences(getActivity()).getInt(key, BookService.BOOK_STATUS_OK);
+            switch (status) {
+                case BookService.BOOK_STATUS_NO_BOOKS:
+                    tv.setText(getString(R.string.not_found));
+                    break;
+                case BookService.BOOK_STATUS_SERVER_DOWN:
+                    tv.setText(getString(R.string.no_internet));
+                    break;
+                case BookService.BOOK_STATUS_SERVER_INVALID:
+                    tv.setText(getString(R.string.invalid_data));
+                    break;
+                case BookService.BOOK_STATUS_UNKNOWN:
+                    tv.setText(getString(R.string.unknown_error));
+                    break;
+            }
+        }
+
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        PreferenceManager.getDefaultSharedPreferences(getActivity()).registerOnSharedPreferenceChangeListener(this);
+        resetPreference();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        PreferenceManager.getDefaultSharedPreferences(getActivity()).unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    private void resetPreference(){
+        PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
+                .putInt(getString(R.string.pref_book_status_key), BookService.BOOK_STATUS_OK).apply();
+    }
 
 
     public AddBook() {
@@ -95,14 +151,16 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                 // Hint: Use a Try/Catch block to handle the Intent dispatch gracefully, if you
                 // are using an external app.
                 //when you're done, remove the toast below.
-                Context context = getActivity();
-                CharSequence text = "This button should let you scan a book for its barcode!";
-                int duration = Toast.LENGTH_SHORT;
 
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
+//                Context context = getActivity();
+//                CharSequence text = "This button should let you scan a book for its barcode!";
+//                int duration = Toast.LENGTH_SHORT;
+//
+//                Toast toast = Toast.makeText(context, text, duration);
+//                toast.show();
+                ((Callback) getActivity()).onScanButtonClicked();
 
-                startActivity(new Intent(getActivity(), ScannerActivity.class));
+//                startActivity(new Intent(getActivity(), ScannerActivity.class));
 
             }
         });
@@ -127,7 +185,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
         if (savedInstanceState != null) {
             ean.setText(savedInstanceState.getString(EAN_CONTENT));
-          //  ean.setHint("");
+            //  ean.setHint("");
         }
 
         getScannedBarCode();
@@ -226,6 +284,8 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         rootView.findViewById(R.id.bookCover).setVisibility(View.INVISIBLE);
         rootView.findViewById(R.id.save_button).setVisibility(View.INVISIBLE);
         rootView.findViewById(R.id.delete_button).setVisibility(View.INVISIBLE);
+
+        resetPreference();
     }
 
     @Override
@@ -233,4 +293,9 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         super.onAttach(activity);
         activity.setTitle(R.string.scan);
     }
+
+//    public void updateStatus(String status) {
+//        ((TextView) rootView.findViewById(R.id.bookTitle)).setText(status);
+//    }
+
 }

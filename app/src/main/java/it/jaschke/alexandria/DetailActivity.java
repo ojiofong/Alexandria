@@ -32,6 +32,7 @@ public class DetailActivity extends AppCompatActivity implements BookDetail.Book
                 onBackPressed();
             }
         });
+        toolbar.inflateMenu(R.menu.book_detail);
     }
 
     private void initBookDetailFragment() {

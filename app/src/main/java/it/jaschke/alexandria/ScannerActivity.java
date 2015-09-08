@@ -7,24 +7,22 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
-import it.jaschke.alexandria.api.Callback;
-import me.dm7.barcodescanner.zbar.Result;
-import me.dm7.barcodescanner.zbar.ZBarScannerView;
+import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
 /**
  * Utilizing Barcode scanner library project
  *
  * @link https://github.com/dm77/barcodescanner
  */
-public class ScannerActivity extends AppCompatActivity implements ZBarScannerView.ResultHandler {
+public class ScannerActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler {
 
     private static String TAG = ScannerActivity.class.getSimpleName();
-    ZBarScannerView mScannerView;
+    private ZXingScannerView mScannerView;
 
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
-        mScannerView = new ZBarScannerView(this);    // Programmatically initialize the scanner view
+        mScannerView = new ZXingScannerView(this);   // Programmatically initialize the scanner view
         setContentView(mScannerView);                // Set the scanner view as the content view
     }
 
@@ -41,12 +39,11 @@ public class ScannerActivity extends AppCompatActivity implements ZBarScannerVie
         mScannerView.stopCamera();           // Stop camera on pause
     }
 
-
     @Override
-    public void handleResult(Result result) {
+    public void handleResult(com.google.zxing.Result result) {
         // Do something with the result here
-        String isbn = result.getContents();
-        String format = result.getBarcodeFormat().getName();
+        String isbn = result.getText();
+        String format = result.getBarcodeFormat().toString();
 
         Log.v(TAG, isbn); // Prints scan results
         Log.v(TAG, format); // Prints the scan format (qrcode, pdf417 etc.)
